@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Stream Standings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Fredoka', cursive, sans-serif;
+    }
+
+    body {
+      background: transparent;
+      padding: 12px;
+      width: 380px;
+      overflow: hidden;
+    }
+
+    .card {
+      background: rgba(22, 12, 32, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1.5px solid rgba(255, 182, 217, 0.28);
+      border-radius: 22px;
+      padding: 16px 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 4px 10px 4px;
+      border-bottom: 1px solid rgba(255, 182, 217, 0.14);
+      margin-bottom: 10px;
+    }
+
+    .title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #ffb4d6;
+      letter-spacing: 0.5px;
+    }
+
+    .live-badge {
+      background: #ff4d8d;
+      color: #ffffff;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 10px;
+      letter-spacing: 0.8px;
+    }
+
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 12px;
+      padding: 6px 12px;
+      transition: all 0.25s ease;
+    }
+
+    .rank {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #c084fc;
+      width: 24px;
+    }
+
+    .name {
+      flex: 1;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: #ffffff;
+      padding: 0 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .score {
+      font-size: 0.9rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #f472b6, #c084fc);
+      color: #ffffff;
+      padding: 2px 10px;
+      border-radius: 10px;
+      min-width: 26px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(244, 114, 182, 0.35);
+    }
+
+    .row.pos-1 {
+      border-color: rgba(251, 191, 36, 0.45);
+      background: rgba(251, 191, 36, 0.12);
+    }
+    .row.pos-1 .rank { color: #fbbf24; }
+
+    .row.pos-2 {
+      border-color: rgba(226, 232, 240, 0.35);
+      background: rgba(226, 232, 240, 0.08);
+    }
+    .row.pos-2 .rank { color: #e2e8f0; }
+
+    .row.pos-3 {
+      border-color: rgba(251, 146, 60, 0.35);
+      background: rgba(251, 146, 60, 0.08);
+    }
+    .row.pos-3 .rank { color: #fb923c; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="header">
+      <span class="title">Standings ✨</span>
+      <span class="live-badge">Live</span>
+    </div>
+    <div class="list" id="playerList">
+      <!-- Players render here -->
+    </div>
+  </div>
+
+  <script>
+    const container = document.getElementById('playerList');
+
+    function draw(players) {
+      container.innerHTML = players.map((p, i) => `
+        <div class="row ${i === 0 ? 'pos-1' : i === 1 ? 'pos-2' : i === 2 ? 'pos-3' : ''}">
+          <span class="rank">#${i + 1}</span>
+          <span class="name">${p.name}</span>
+          <span class="score">${p.score}</span>
+        </div>
+      `).join('');
+    }
+
+    async function sync() {
+      try {
+        const res = await fetch('/api/standings');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.players && data.players.length > 0) {
+          draw(data.players);
+        }
+      } catch (err) {
+        // Silently preserve current view during temporary network blips
+      }
+    }
+
+    sync();
+    setInterval(sync, 2000);
+  </script>
+</body>
+</html>
