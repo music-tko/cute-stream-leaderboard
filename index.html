@@ -104,6 +104,7 @@
       box-shadow: 0 2px 8px rgba(244, 114, 182, 0.35);
     }
 
+    /* Podium Highlights */
     .row.pos-1 {
       border-color: rgba(251, 191, 36, 0.45);
       background: rgba(251, 191, 36, 0.12);
@@ -136,6 +137,9 @@
   </div>
 
   <script>
+    const BOARD_TOKEN = 'pfrksfhxkyrhr';
+    const API_URL = `https://leaderboarded.com/api/${BOARD_TOKEN}/board/`;
+
     const container = document.getElementById('playerList');
 
     function draw(players) {
@@ -148,21 +152,33 @@
       `).join('');
     }
 
-    async function sync() {
+    async function fetchScores() {
       try {
-        const res = await fetch('/api/standings');
+        const res = await fetch(API_URL);
         if (!res.ok) return;
+
         const data = await res.json();
-        if (data.players && data.players.length > 0) {
-          draw(data.players);
+        
+        // Leaderboarded returns an array under `players` or `participants`
+        const rawList = data.players || data.participants || [];
+
+        if (rawList.length > 0) {
+          const formatted = rawList.map(p => ({
+            name: p.name || 'Player',
+            score: Number(p.score ?? 0)
+          }));
+
+          // Sort highest to lowest
+          formatted.sort((a, b) => b.score - a.score);
+          draw(formatted);
         }
       } catch (err) {
-        // Silently preserve current view during temporary network blips
+        // Silently preserve current list on temporary network blips
       }
     }
 
-    sync();
-    setInterval(sync, 2000);
+    fetchScores();
+    setInterval(fetchScores, 2000);
   </script>
 </body>
 </html>
